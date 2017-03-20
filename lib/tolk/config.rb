@@ -23,6 +23,9 @@ module Tolk
       # strip translation texts automatically
       attr_accessor :strip_texts
 
+      # locales
+      attr_accessor :additional_locales
+
       def reset
         @exclude_gems_token = false
 

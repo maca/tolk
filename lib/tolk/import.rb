@@ -15,13 +15,13 @@ module Tolk
             l.match(/(.*\.){2,}/) # reject files of type xxx.en.yml
         }
         locales = locales.reject(&locale_block_filter).map {|x| x.split('.').first }
-        locales = locales - [Tolk::Locale.primary_locale.name]
+        locales = locales + Tolk.config.additional_locales - [Tolk::Locale.primary_locale.name]
         locales.each {|l| import_locale(l) }
       end
 
       def import_locale(locale_name)
         locale = Tolk::Locale.where(name: locale_name).first_or_create
-        data = locale.read_locale_file
+        data = I18n.backend.send(:translations)[locale_name.to_sym]
         return unless data
 
         phrases = Tolk::Phrase.all
@@ -43,20 +43,6 @@ module Tolk
         end
 
         puts "[INFO] Imported #{count} keys from #{locale_name}.yml"
-      end
-
-    end
-
-    def read_locale_file
-      locale_file = "#{self.locales_config_path}/#{self.name}.yml"
-      raise "Locale file #{locale_file} does not exists" unless File.exists?(locale_file)
-
-      puts "[INFO] Reading #{locale_file} for locale #{self.name}"
-      begin
-        self.class.flat_hash(Tolk::YAML.load_file(locale_file)[self.name])
-      rescue
-        puts "[ERROR] File #{locale_file} expected to declare #{self.name} locale, but it does not. Skipping this file."
-        nil
       end
 
     end
